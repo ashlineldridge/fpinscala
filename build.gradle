@@ -1,0 +1,26 @@
+apply plugin: 'scala'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+ext {
+    scalaVersion = '2.11.8'
+    scalaBuildVersion = '2.11'
+}
+
+dependencies {
+    compile "org.scala-lang:scala-library:${scalaVersion}"
+    compile "com.typesafe.scala-logging:scala-logging_${scalaBuildVersion}:3.4.0"
+    compile "ch.qos.logback:logback-classic:1.1.7"
+    compile "com.typesafe:config:1.3.0"
+    compile "joda-time:joda-time:2.9.3"
+    compile "org.slf4j:jcl-over-slf4j:1.7.21"
+    compile "org.slf4j:log4j-over-slf4j:1.7.21"
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.0'
+}
+
