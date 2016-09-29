@@ -2,7 +2,6 @@ package fpinscala.state
 
 import scala.annotation.tailrec
 
-
 trait RNG {
   def nextInt: (Int, RNG)
 }
@@ -121,21 +120,40 @@ object RNG {
 }
 
 case class State[S,+A](run: S => (A, S)) {
+  import State._
+
   def map[B](f: A => B): State[S, B] =
-    sys.error("todo")
+    flatMap(a => unit(f(a)))
+
   def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C] =
-    sys.error("todo")
+    flatMap(a => sb.map(b => f(a, b)))
+
   def flatMap[B](f: A => State[S, B]): State[S, B] =
-    sys.error("todo")
+    State { s =>
+      val (a, s1) = run(s)
+      f(a).run(s1)
+    }
 }
 
 sealed trait Input
 case object Coin extends Input
 case object Turn extends Input
 
-case class Machine(locked: Boolean, candies: Int, coins: Int)
+case class Machine(locked: Boolean, coins: Int, candies: Int)
 
 object State {
   type Rand[A] = State[RNG, A]
-  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
+
+  def unit[S, A](a: A): State[S, A] =
+    State(s => (a, s))
+
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] =
+    State { in =>
+      val out = inputs.foldLeft(in) {
+        case (Machine(true, coins, candies), Coin) if candies > 0 => Machine(locked = false, coins + 1, candies)
+        case (Machine(false, coins, candies), Turn) if candies > 0 => Machine(locked = true, coins, candies - 1)
+        case (m, _) => m
+      }
+      ((out.coins, out.candies), out)
+    }
 }
